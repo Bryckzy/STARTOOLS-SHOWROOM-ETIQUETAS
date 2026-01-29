@@ -2,10 +2,6 @@
 import { jsPDF } from 'jspdf';
 import { LabelItem, LabelMode, CA4249_CONFIG } from '../types';
 
-/**
- * Motor de Calibração STARTOOLS V16
- * Calcula o multiplicador para que 10pt = 26mm físicos na largura.
- */
 const getCalibratedMultiplier = (doc: jsPDF): number => {
   const benchmarkText = "CX464 - 74X107";
   const targetWidthMm = 26.0;
@@ -20,7 +16,8 @@ export const generatePDFBlob = (
   labels: LabelItem[],
   mode: LabelMode,
   showOutline: boolean,
-  startPosition: number = 0
+  startPosition: number = 0,
+  textAlign: 'left' | 'center' = 'center'
 ): string => {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -59,32 +56,36 @@ export const generatePDFBlob = (
       const ptToMm = 0.3527; 
       const lineSpacing = (finalFontSize * ptToMm) * 1.1;
 
+      // Cálculo de X baseado no alinhamento
+      const isCenter = textAlign === 'center';
+      const textX = isCenter ? x + (labelWidth / 2) : x + 2;
+      const alignOption = isCenter ? 'center' : 'left';
+
       if (mode === LabelMode.PRODUCT) {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(finalFontSize);
-        doc.text((label.sku || '').toUpperCase(), x + (labelWidth/2), centerV - lineSpacing + (finalFontSize * 0.1), { align: 'center' });
+        doc.text((label.sku || '').toUpperCase(), textX, centerV - lineSpacing + (finalFontSize * 0.1), { align: alignOption });
         
         doc.setFont('helvetica', 'normal');
-        doc.text(label.price || '', x + (labelWidth/2), centerV + (finalFontSize * 0.1), { align: 'center' });
+        doc.text(label.price || '', textX, centerV + (finalFontSize * 0.1), { align: alignOption });
         
         doc.setTextColor(120, 120, 120);
         doc.setFontSize(finalFontSize * 0.75);
-        doc.text((label.cxInner || '').toUpperCase(), x + (labelWidth/2), centerV + lineSpacing + (finalFontSize * 0.1), { align: 'center' });
+        doc.text((label.cxInner || '').toUpperCase(), textX, centerV + lineSpacing + (finalFontSize * 0.1), { align: alignOption });
       } else {
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(finalFontSize);
-        doc.text((label.measureText || '').toUpperCase(), x + (labelWidth/2), centerV + (finalFontSize * 0.1), { align: 'center' });
+        doc.text((label.measureText || '').toUpperCase(), textX, centerV + (finalFontSize * 0.1), { align: alignOption });
       }
     });
   }
   
-  // FIX: doc.output('bloburl') returns a URL object in modern jsPDF types, convert it to string.
   return doc.output('bloburl').toString();
 };
 
 export const downloadPDF = (blobUrl: string) => {
   const link = document.createElement('a');
   link.href = blobUrl;
-  link.download = `startools_print_${new Date().getTime()}.pdf`;
+  link.download = `startools_${new Date().getTime()}.pdf`;
   link.click();
 };
