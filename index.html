@@ -19,48 +19,49 @@
       }
       * {
         -webkit-tap-highlight-color: transparent;
+        box-sizing: border-box;
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f1f5f9;
+        background-color: #f8fafc;
         color: var(--st-charcoal);
         margin: 0;
         padding: 0;
         overflow: hidden;
         height: 100dvh;
+        width: 100dvw;
       }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       
       @keyframes springIn {
-        0% { transform: translateY(20px) scale(0.95); opacity: 0; }
+        0% { transform: translateY(15px) scale(0.98); opacity: 0; }
         100% { transform: translateY(0) scale(1); opacity: 1; }
       }
-      .animate-item-in { animation: springIn 0.5s var(--st-spring) forwards; }
+      .animate-item-in { animation: springIn 0.4s var(--st-spring) forwards; }
 
       @keyframes itemDelete {
         0% { transform: scale(1); opacity: 1; }
-        100% { transform: scale(0.8); opacity: 0; filter: blur(10px); }
+        100% { transform: scale(0.9); opacity: 0; height: 0; margin-bottom: 0; padding: 0; }
       }
-      .animate-item-delete { animation: itemDelete 0.4s var(--st-spring) forwards; }
+      .animate-item-delete { animation: itemDelete 0.3s ease-in forwards; }
 
-      .dragging-item {
-        z-index: 9999 !important;
-        cursor: grabbing !important;
+      /* Botão de gerar fixo com hover de brilho */
+      .btn-generate {
+        background-color: var(--st-lime) !important;
+        color: #000 !important;
+        transition: all 0.3s var(--st-spring);
       }
-
-      .btn-hover-effect:hover {
+      .btn-generate:hover {
+        filter: brightness(1.1);
         transform: translateY(-2px);
-        filter: brightness(1.05);
       }
-      .btn-hover-effect:active {
+      .btn-generate:active {
         transform: scale(0.96);
       }
 
-      /* Vidro e Camadas */
-      .glass-card {
-        background: rgba(255, 255, 255, 0.8);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+      /* Estilo de arraste mobile */
+      .drag-handle-active {
+        touch-action: none;
       }
     </style>
   <script type="importmap">
