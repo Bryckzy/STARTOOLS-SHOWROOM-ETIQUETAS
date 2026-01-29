@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>STARTOOLS SHOWROOM | ETIQUETAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --app-bg: #09090b; /* zinc-950 */
+        --accent-primary: #facc15; /* yellow-400 */
+        --accent-secondary: #f59e0b; /* amber-500 */
+        --accent-danger: #f43f5e; /* rose-500 */
+      }
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--app-bg);
+        color: #f8fafc;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      input[type=range] {
+        accent-color: var(--accent-primary);
+      }
+      
+      .industrial-card {
+        background: #000;
+        border: 3px solid #18181b;
+        box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.4);
+      }
+
+      @keyframes vaza-pulse {
+        0%, 100% { border-color: #f43f5e; box-shadow: 0 0 10px rgba(244, 63, 94, 0.5); }
+        50% { border-color: #fb7185; box-shadow: 0 0 20px rgba(244, 63, 94, 0.8); }
+      }
+      .vaza-active {
+        animation: vaza-pulse 0.8s infinite;
+        background: #f43f5e !important;
+        color: #fff !important;
+      }
+      
+      .scanline::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to bottom, transparent, rgba(250, 204, 21, 0.04), transparent);
+        animation: scanline 4s linear infinite;
+        pointer-events: none;
+      }
+      @keyframes scanline {
+        0% { transform: translateY(-100%); }
+        100% { transform: translateY(100%); }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+    "xlsx": "https://esm.sh/xlsx@^0.18.5",
+    "jspdf": "https://esm.sh/jspdf@^4.0.0",
+    "@dnd-kit/sortable": "https://esm.sh/@dnd-kit/sortable@^10.0.0",
+    "@dnd-kit/utilities": "https://esm.sh/@dnd-kit/utilities@^3.2.2",
+    "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
+    "@dnd-kit/core": "https://esm.sh/@dnd-kit/core@^6.3.1"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
