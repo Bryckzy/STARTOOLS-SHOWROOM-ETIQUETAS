@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>STARTOOLS | SHOWROOM ETIQUETAS</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path fill=%22%23facc15%22 d=%22M30 50 L70 10 L50 50 L80 50 L30 90 L50 50 Z%22/><path fill=%22%23bef264%22 d=%22M40 60 L60 30 L50 60 L70 60 L40 85 L50 60 Z%22/></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,15 +16,13 @@
         --st-lime: #bef264;
         --st-charcoal: #18181b;
         --st-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-        --st-soft: cubic-bezier(0.23, 1, 0.32, 1);
       }
       * {
         -webkit-tap-highlight-color: transparent;
-        transition-timing-function: var(--st-spring);
       }
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f3f4f6;
+        background-color: #f1f5f9;
         color: var(--st-charcoal);
         margin: 0;
         padding: 0;
@@ -33,61 +31,36 @@
       }
       .no-scrollbar::-webkit-scrollbar { display: none; }
       
-      /* Animações de Entrada e Interação */
       @keyframes springIn {
-        0% { transform: translateY(30px) scale(0.9); opacity: 0; }
+        0% { transform: translateY(20px) scale(0.95); opacity: 0; }
         100% { transform: translateY(0) scale(1); opacity: 1; }
       }
-      .animate-spring-in { animation: springIn 0.6s var(--st-spring) forwards; }
+      .animate-item-in { animation: springIn 0.5s var(--st-spring) forwards; }
 
-      @keyframes float-soft {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
+      @keyframes itemDelete {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(0.8); opacity: 0; filter: blur(10px); }
       }
-      .animate-float { animation: float-soft 3s ease-in-out infinite; }
+      .animate-item-delete { animation: itemDelete 0.4s var(--st-spring) forwards; }
 
-      /* Efeito Hover nos botões */
-      .btn-premium {
-        transition: all 0.3s var(--st-spring);
-      }
-      .btn-premium:hover {
-        transform: translateY(-3px) scale(1.02);
-        box-shadow: 0 15px 30px -10px rgba(0,0,0,0.2);
-      }
-      .btn-premium:active {
-        transform: scale(0.95);
+      .dragging-item {
+        z-index: 9999 !important;
+        cursor: grabbing !important;
       }
 
-      /* Switch Premium */
-      .switch-track {
-        transition: background-color 0.4s var(--st-soft);
+      .btn-hover-effect:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.05);
       }
-      .switch-thumb {
-        transition: left 0.4s var(--st-spring), transform 0.2s var(--st-soft);
+      .btn-hover-effect:active {
+        transform: scale(0.96);
       }
 
-      /* Custom Slider */
-      input[type=range] {
-        -webkit-appearance: none;
-        background: transparent;
-      }
-      input[type=range]::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        height: 20px;
-        width: 20px;
-        border-radius: 50%;
-        background: #ffffff;
-        border: 2px solid var(--st-charcoal);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        cursor: pointer;
-        margin-top: -8px;
-        transition: transform 0.2s var(--st-spring);
-      }
-      input[type=range]::-webkit-slider-thumb:active { transform: scale(1.4); }
-      input[type=range]::-webkit-slider-runnable-track {
-        height: 4px;
-        background: #e2e8f0;
-        border-radius: 10px;
+      /* Vidro e Camadas */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
     </style>
   <script type="importmap">
