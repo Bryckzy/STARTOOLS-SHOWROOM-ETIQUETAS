@@ -1,5 +1,6 @@
+
 {
-  "name": "LabelCraft CA4249 - Gerador de Etiquetas",
-  "description": "Sistema profissional para criação, gerenciamento e impressão de etiquetas Colacril CA4249 (126 por folha). Suporta modos de produto e medida, importação de Excel, ordenação manual e preview em tempo real com contorno opcional.",
+  "name": "Startools Showroom Etiquetas (Pimaco A4249)",
+  "description": "Sistema profissional de alta precisão para criação, gerenciamento e impressão de etiquetas Pimaco A4249 (126 por folha). Suporta modos de produto e medida, importação de Excel, ordenação manual e preview em tempo real.",
   "requestFramePermissions": []
 }

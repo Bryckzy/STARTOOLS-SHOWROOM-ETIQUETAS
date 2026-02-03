@@ -1,6 +1,8 @@
 
 import { jsPDF } from 'jspdf';
-import { LabelItem, LabelMode, CA4249_CONFIG } from '../types';
+import { LabelItem, LabelMode, PIMACO_A4249_CONFIG } from '../types';
+
+const ptToMm = 0.3527;
 
 const getCalibratedMultiplier = (doc: jsPDF): number => {
   const benchmarkText = "CX464 - 74X107";
@@ -10,6 +12,20 @@ const getCalibratedMultiplier = (doc: jsPDF): number => {
   doc.setFontSize(referencePt);
   const currentWidthMm = doc.getTextWidth(benchmarkText);
   return targetWidthMm / currentWidthMm;
+};
+
+// Função para ajustar o tamanho da fonte para que o texto caiba na largura disponível
+const getAutoFontSize = (doc: jsPDF, text: string, maxWidth: number, baseSize: number): number => {
+  let size = baseSize;
+  doc.setFontSize(size);
+  let width = doc.getTextWidth(text);
+  
+  while (width > maxWidth && size > 3.5) {
+    size -= 0.3;
+    doc.setFontSize(size);
+    width = doc.getTextWidth(text);
+  }
+  return size;
 };
 
 export const generatePDFBlob = (
@@ -26,7 +42,18 @@ export const generatePDFBlob = (
     floatPrecision: 16
   });
 
-  const { columns, rows, labelWidth, labelHeight, marginLeft, marginTop, borderRadius } = CA4249_CONFIG;
+  const { 
+    columns, 
+    rows, 
+    labelWidth, 
+    labelHeight, 
+    marginLeft, 
+    marginTop, 
+    columnGap, 
+    rowGap, 
+    borderRadius 
+  } = PIMACO_A4249_CONFIG;
+
   const multiplier = getCalibratedMultiplier(doc);
   const labelsPerPage = columns * rows;
   const fullList = [...Array(startPosition).fill(null), ...labels];
@@ -38,44 +65,94 @@ export const generatePDFBlob = (
 
     pageItems.forEach((label, index) => {
       if (!label) return;
-      const x = marginLeft + ((index % columns) * labelWidth);
-      const y = marginTop + (Math.floor(index / columns) * labelHeight);
+      
+      const col = index % columns;
+      const row = Math.floor(index / columns);
+      
+      const x = marginLeft + (col * (labelWidth + columnGap));
+      const y = marginTop + (row * (labelHeight + rowGap));
 
       if (showOutline) {
-        doc.setDrawColor(220, 220, 220);
+        doc.setDrawColor(210, 210, 210);
         doc.setLineWidth(0.05);
         doc.roundedRect(x, y, labelWidth, labelHeight, borderRadius, borderRadius, 'S');
       }
 
+      const hasVoltage = mode === LabelMode.PRODUCT && label.voltage && label.voltage !== 'NONE';
+      
+      // Espaço disponível para texto
+      const padding = 1.2;
+      const availableWidth = hasVoltage ? (labelWidth / 2) - (padding * 1.5) : labelWidth - (padding * 2);
+      
       const baseSize = mode === LabelMode.PRODUCT ? 8.5 : 14;
       const userFontSize = label.customFontSize || baseSize;
       const finalFontSize = userFontSize * multiplier;
 
       doc.setTextColor(0, 0, 0);
-      const centerV = y + (labelHeight / 2);
-      const ptToMm = 0.3527; 
-      const lineSpacing = (finalFontSize * ptToMm) * 1.1;
-
-      // Cálculo de X baseado no alinhamento
-      const isCenter = textAlign === 'center';
-      const textX = isCenter ? x + (labelWidth / 2) : x + 2;
-      const alignOption = isCenter ? 'center' : 'left';
-
+      
       if (mode === LabelMode.PRODUCT) {
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(finalFontSize);
-        doc.text((label.sku || '').toUpperCase(), textX, centerV - lineSpacing + (finalFontSize * 0.1), { align: alignOption });
         
-        doc.setFont('helvetica', 'normal');
-        doc.text(label.price || '', textX, centerV + (finalFontSize * 0.1), { align: alignOption });
-        
-        doc.setTextColor(120, 120, 120);
-        doc.setFontSize(finalFontSize * 0.75);
-        doc.text((label.cxInner || '').toUpperCase(), textX, centerV + lineSpacing + (finalFontSize * 0.1), { align: alignOption });
+        const skuText = (label.sku || '').toUpperCase();
+        const priceText = label.price || '';
+        const obsText = (label.cxInner || '').toUpperCase();
+
+        const leftX = x + padding;
+        const alignOption = 'left';
+
+        // Linha 1: SKU
+        const skuSize = getAutoFontSize(doc, skuText, availableWidth, finalFontSize);
+        doc.setFontSize(skuSize);
+        doc.text(skuText, leftX, y + 4.5, { align: alignOption });
+
+        // Linha 2: Preço
+        const priceSize = getAutoFontSize(doc, priceText, availableWidth, finalFontSize);
+        doc.setFontSize(priceSize);
+        doc.text(priceText, leftX, y + 8.8, { align: alignOption });
+
+        // Linha 3: OBS (Ajustado para ser bold também conforme solicitado)
+        const obsSize = getAutoFontSize(doc, obsText, availableWidth, finalFontSize * 0.75);
+        doc.setFontSize(obsSize);
+        doc.text(obsText, leftX, y + 13, { align: alignOption });
+
+        // Lado Direito (Voltagem)
+        if (hasVoltage) {
+          const vBoxW = labelWidth / 2 - 1.5;
+          const vBoxH = labelHeight - 2;
+          const vBoxX = x + labelWidth / 2 + 0.5;
+          const vBoxY = y + 1;
+          
+          // Fundo leve para destacar a voltagem
+          doc.setDrawColor(0);
+          doc.setLineWidth(0.15);
+          doc.roundedRect(vBoxX, vBoxY, vBoxW, vBoxH, 0.5, 0.5, 'S');
+          
+          const voltText = label.voltage || '';
+          const voltValue = voltText.replace('V', '');
+          
+          // Número da voltagem grande
+          const voltFontSize = 18 * multiplier;
+          doc.setFontSize(voltFontSize);
+          doc.setFont('helvetica', 'bold');
+          
+          const vTextX = vBoxX + (vBoxW / 2);
+          const vTextY = y + (labelHeight / 2) + 1.5;
+          
+          doc.text(voltValue, vTextX, vTextY - 1, { align: 'center' });
+          
+          // Texto "VOLTS" pequeno embaixo
+          doc.setFontSize(voltFontSize * 0.35);
+          doc.text('VOLTS', vTextX, vTextY + 2.5, { align: 'center' });
+        }
       } else {
+        // Modo Medida
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(finalFontSize);
-        doc.text((label.measureText || '').toUpperCase(), textX, centerV + (finalFontSize * 0.1), { align: alignOption });
+        const mText = (label.measureText || '').toUpperCase();
+        const mSize = getAutoFontSize(doc, mText, labelWidth - 4, finalFontSize);
+        doc.setFontSize(mSize);
+        const textX = textAlign === 'center' ? x + (labelWidth / 2) : x + 1.5;
+        const centerV = y + (labelHeight / 2);
+        doc.text(mText, textX, centerV + (mSize * 0.35 * ptToMm), { align: textAlign === 'center' ? 'center' : 'left' });
       }
     });
   }
@@ -86,6 +163,6 @@ export const generatePDFBlob = (
 export const downloadPDF = (blobUrl: string) => {
   const link = document.createElement('a');
   link.href = blobUrl;
-  link.download = `startools_${new Date().getTime()}.pdf`;
+  link.download = `etiquetas_showroom_${new Date().getTime()}.pdf`;
   link.click();
 };

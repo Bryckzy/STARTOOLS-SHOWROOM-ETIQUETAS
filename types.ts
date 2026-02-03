@@ -4,6 +4,8 @@ export enum LabelMode {
   MEASURE = 'MEASURE'
 }
 
+export type VoltageType = '127V' | '220V' | 'NONE';
+
 export interface LabelItem {
   id: string;
   sku?: string;
@@ -11,6 +13,7 @@ export interface LabelItem {
   cxInner?: string;
   measureText?: string;
   customFontSize?: number;
+  voltage?: VoltageType;
 }
 
 export interface SheetConfig {
@@ -20,21 +23,26 @@ export interface SheetConfig {
   labelHeight: number;
   marginLeft: number;
   marginTop: number;
+  columnGap: number;
+  rowGap: number;
   borderRadius: number;
 }
 
 /**
- * CONFIGURAÇÃO OFICIAL COLACRIL CA4249
+ * CONFIGURAÇÃO TÉCNICA OFICIAL PIMACO A4249
  * 126 etiquetas por folha (7 colunas x 18 linhas)
- * Cada etiqueta: 26mm x 15mm
- * Folha A4: 210mm x 297mm
+ * Dimensões: 26mm x 15mm
+ * Margens: 8mm laterais | 13mm superior
+ * Espaçamento: 2mm horizontal | 0mm vertical
  */
-export const CA4249_CONFIG: SheetConfig = {
+export const PIMACO_A4249_CONFIG: SheetConfig = {
   columns: 7,
   rows: 18,
   labelWidth: 26.0,
   labelHeight: 15.0,
-  marginLeft: 14.0, // (210 - (7 * 26)) / 2
-  marginTop: 13.5,  // (297 - (18 * 15)) / 2
-  borderRadius: 1.0 
+  marginLeft: 8.0,
+  marginTop: 13.0,
+  columnGap: 2.0,
+  rowGap: 0.0,
+  borderRadius: 0.5 
 };
