@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { LabelItem, LabelMode, VoltageType } from '../types';
-import { GripVertical, Trash2, Edit3, Type, Check, X, SlidersHorizontal, Settings2, Power } from 'lucide-react';
+import { GripVertical, Trash2, Edit3, Type, Check, X, SlidersHorizontal, Settings2, Power, AlignJustify } from 'lucide-react';
 
 interface Props {
   label: LabelItem;
@@ -58,7 +58,12 @@ const SortableLabelItem: React.FC<Props> = ({ label, mode, onDelete, onUpdate })
                     </div>
                   </div>
                 ) : (
-                  <input className="w-full text-[10px] font-black bg-slate-50 border-2 border-slate-100 px-3 py-2 rounded-lg outline-none uppercase" value={localData.measureText} onChange={e => setLocalData({...localData, measureText: e.target.value})} placeholder="Texto" />
+                  <div className="space-y-2">
+                    <input className="w-full text-[10px] font-black bg-slate-50 border-2 border-slate-100 px-3 py-2 rounded-lg outline-none uppercase" value={localData.measureText} onChange={e => setLocalData({...localData, measureText: e.target.value})} placeholder="Texto" />
+                    <button onClick={() => setLocalData({...localData, multiLine: !localData.multiLine})} className={`w-full py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${localData.multiLine ? 'bg-[#18181b] text-[#facc15]' : 'bg-slate-100 text-slate-400'}`}>
+                      Quebrar: {localData.multiLine ? 'SIM' : 'NÃO'}
+                    </button>
+                  </div>
                 )}
                 <div className="flex gap-2">
                   <button onClick={handleSave} className="flex-1 bg-[#bef264] text-black text-[9px] font-black uppercase py-2 rounded-lg flex items-center justify-center gap-1"><Check size={14}/> Salvar</button>
@@ -82,7 +87,10 @@ const SortableLabelItem: React.FC<Props> = ({ label, mode, onDelete, onUpdate })
                       </div>
                     </>
                   ) : (
-                    <span className="text-[13px] font-black uppercase text-[#18181b] truncate">{label.measureText || '---'}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-black uppercase text-[#18181b] truncate">{label.measureText || '---'}</span>
+                      {label.multiLine && <AlignJustify size={14} className="text-[#bef264]" />}
+                    </div>
                   )}
                 </div>
                 <div className="flex items-center gap-1">

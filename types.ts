@@ -14,6 +14,7 @@ export interface LabelItem {
   measureText?: string;
   customFontSize?: number;
   voltage?: VoltageType;
+  multiLine?: boolean;
 }
 
 export interface SheetConfig {

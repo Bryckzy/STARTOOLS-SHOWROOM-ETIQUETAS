@@ -19,7 +19,7 @@ import {
   sortableKeyboardCoordinates, 
   verticalListSortingStrategy 
 } from '@dnd-kit/sortable';
-import { FileSpreadsheet, Download, Printer, Zap, RefreshCcw, Eye, Plus, List, AlignCenter, AlignLeft, CheckCircle2, AlertTriangle, HelpCircle, Power } from 'lucide-react';
+import { FileSpreadsheet, Download, Printer, Zap, RefreshCcw, Eye, Plus, List, AlignCenter, AlignLeft, CheckCircle2, AlertTriangle, HelpCircle, Power, AlignJustify } from 'lucide-react';
 import { LabelItem, LabelMode, VoltageType } from './types';
 import { downloadTemplate, parseExcel } from './services/excelService';
 import { generatePDFBlob, downloadPDF } from './services/pdfService';
@@ -33,7 +33,7 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit');
   const [pdfUrl, setPdfUrl] = useState<string>('');
   const [textAlign, setTextAlign] = useState<'left' | 'center'>('center');
-  const [formData, setFormData] = useState({ sku: '', price: '', cxInner: '', measureText: '', quantity: '1', voltage: 'NONE' as VoltageType });
+  const [formData, setFormData] = useState({ sku: '', price: '', cxInner: '', measureText: '', quantity: '1', voltage: 'NONE' as VoltageType, multiLine: false });
   const [activeId, setActiveId] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -59,7 +59,7 @@ const App: React.FC = () => {
     if (labels.length > 0 && !confirm('A fila atual será removida. Continuar?')) return;
     setMode(newMode);
     setLabels([]);
-    setFormData({ sku: '', price: '', cxInner: '', measureText: '', quantity: '1', voltage: 'NONE' });
+    setFormData({ sku: '', price: '', cxInner: '', measureText: '', quantity: '1', voltage: 'NONE', multiLine: false });
   };
 
   const executeAddAction = () => {
@@ -151,7 +151,7 @@ const App: React.FC = () => {
             <h1 className="text-[11px] lg:text-lg font-black tracking-tight uppercase leading-none">
               <span className="text-[#facc15]">STARTOOLS</span> <span className="text-white">SHOWROOM ETIQUETAS</span>
             </h1>
-            <span className="text-[8px] lg:text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] mt-1">Pimaco Precision v16.2</span>
+            <span className="text-[8px] lg:text-[10px] font-bold text-zinc-600 uppercase tracking-[0.3em] mt-1">Pimaco Precision v16.3</span>
           </div>
         </div>
 
@@ -165,7 +165,13 @@ const App: React.FC = () => {
         </button>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
+      {/* Mobile Mode Switcher - Novo */}
+      <div className="lg:hidden flex bg-white p-2 border-b border-slate-100 z-40">
+        <button onClick={() => handleModeChange(LabelMode.PRODUCT)} className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${mode === LabelMode.PRODUCT ? 'bg-[#facc15] text-black' : 'text-slate-400'}`}>Produtos</button>
+        <button onClick={() => handleModeChange(LabelMode.MEASURE)} className={`flex-1 py-3 text-[10px] font-black uppercase rounded-xl transition-all ${mode === LabelMode.MEASURE ? 'bg-[#facc15] text-black' : 'text-slate-400'}`}>Medidas</button>
+      </div>
+
+      <main className="flex-1 flex overflow-hidden relative">
         <section className={`flex-col w-full lg:w-[460px] bg-white border-r border-slate-100 shrink-0 overflow-y-auto no-scrollbar ${activeTab === 'edit' ? 'flex' : 'hidden lg:flex'}`}>
           <div className="p-5 lg:p-10 space-y-8 pb-40">
             <form onSubmit={handleAddLabel} className="space-y-6 p-6 lg:p-8 bg-[#fafafa] rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden">
@@ -194,7 +200,12 @@ const App: React.FC = () => {
                     </div>
                   </>
                 ) : (
-                  <input type="text" placeholder="TEXTO DA ETIQUETA" value={formData.measureText} onChange={e => setFormData({ ...formData, measureText: e.target.value })} className="w-full h-14 px-6 bg-white border border-slate-200 rounded-2xl outline-none focus:border-[#facc15] text-xs font-bold uppercase shadow-sm" />
+                  <div className="space-y-3">
+                    <input type="text" placeholder="TEXTO DA ETIQUETA" value={formData.measureText} onChange={e => setFormData({ ...formData, measureText: e.target.value })} className="w-full h-14 px-6 bg-white border border-slate-200 rounded-2xl outline-none focus:border-[#facc15] text-xs font-bold uppercase shadow-sm" />
+                    <button type="button" onClick={() => setFormData({...formData, multiLine: !formData.multiLine})} className={`w-full py-3 rounded-2xl border flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${formData.multiLine ? 'bg-[#18181b] text-[#facc15] border-[#18181b]' : 'bg-white text-slate-400 border-slate-200'}`}>
+                       <AlignJustify size={16} /> Quebrar Linhas: {formData.multiLine ? 'ATIVADO' : 'DESATIVADO'}
+                    </button>
+                  </div>
                 )}
                 
                 <div className="flex items-end gap-4 pt-2">
@@ -210,7 +221,7 @@ const App: React.FC = () => {
             </form>
 
             <div className="space-y-4">
-               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Configuração de Alinhamento (Somente Medidas)</span>
+               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Configuração de Alinhamento</span>
                <div className="bg-slate-100 p-1.5 rounded-[22px] flex items-center gap-1.5 border border-slate-200/50 shadow-inner">
                   <button onClick={() => setTextAlign('left')} className={`flex-1 py-3 rounded-[18px] flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${textAlign === 'left' ? 'bg-white text-[#18181b] shadow-md' : 'text-slate-400 hover:text-slate-600'}`}><AlignLeft size={18} /> Esquerda</button>
                   <button onClick={() => setTextAlign('center')} className={`flex-1 py-3 rounded-[18px] flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${textAlign === 'center' ? 'bg-white text-[#18181b] shadow-md' : 'text-slate-400 hover:text-slate-600'}`}><AlignCenter size={18} /> Centro</button>
@@ -249,8 +260,16 @@ const App: React.FC = () => {
                  </div>
               </div>
             </div>
-            <div className="flex-1 bg-white rounded-[40px] overflow-hidden shadow-2xl border-4 border-white relative">
-              {pdfUrl && labels.length > 0 ? <iframe src={`${pdfUrl}#toolbar=0&navpanes=0&view=FitH`} className="w-full h-full border-none" /> : (
+            
+            {/* Contenedor PDF Mejorado para Mobile */}
+            <div className="flex-1 bg-white rounded-[40px] overflow-hidden shadow-2xl border-4 border-white relative min-h-[400px]">
+              {pdfUrl && labels.length > 0 ? (
+                <iframe 
+                  src={`${pdfUrl}#toolbar=0&navpanes=0&view=FitH`} 
+                  className="w-full h-full border-none" 
+                  title="PDF Preview"
+                />
+              ) : (
                 <div className="w-full h-full flex flex-col items-center justify-center text-slate-200 gap-6">
                   <Printer size={64} strokeWidth={1} className="opacity-10" />
                   <p className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-300">Aguardando Dados</p>
@@ -259,6 +278,22 @@ const App: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* Mobile Tab Switcher Fixo na Parte Inferior */}
+        <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] bg-white border border-slate-100 shadow-2xl rounded-full p-1.5 flex gap-2">
+           <button 
+             onClick={() => setActiveTab('edit')} 
+             className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase transition-all ${activeTab === 'edit' ? 'bg-[#18181b] text-[#facc15]' : 'text-slate-400'}`}
+           >
+             <List size={16} /> Lista
+           </button>
+           <button 
+             onClick={() => setActiveTab('preview')} 
+             className={`flex items-center gap-2 px-6 py-3 rounded-full text-[10px] font-black uppercase transition-all ${activeTab === 'preview' ? 'bg-[#18181b] text-[#bef264]' : 'text-slate-400'}`}
+           >
+             <Eye size={16} /> Preview
+           </button>
+        </div>
       </main>
     </div>
   );

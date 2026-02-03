@@ -14,16 +14,22 @@ const getCalibratedMultiplier = (doc: jsPDF): number => {
   return targetWidthMm / currentWidthMm;
 };
 
-// Função para ajustar o tamanho da fonte para que o texto caiba na largura disponível
-const getAutoFontSize = (doc: jsPDF, text: string, maxWidth: number, baseSize: number): number => {
+const getAutoFontSize = (doc: jsPDF, text: string | string[], maxWidth: number, baseSize: number): number => {
   let size = baseSize;
   doc.setFontSize(size);
-  let width = doc.getTextWidth(text);
   
+  const checkWidth = (txt: string | string[]) => {
+    if (Array.isArray(txt)) {
+      return Math.max(...txt.map(line => doc.getTextWidth(line)));
+    }
+    return doc.getTextWidth(txt);
+  };
+
+  let width = checkWidth(text);
   while (width > maxWidth && size > 3.5) {
     size -= 0.3;
     doc.setFontSize(size);
-    width = doc.getTextWidth(text);
+    width = checkWidth(text);
   }
   return size;
 };
@@ -79,8 +85,6 @@ export const generatePDFBlob = (
       }
 
       const hasVoltage = mode === LabelMode.PRODUCT && label.voltage && label.voltage !== 'NONE';
-      
-      // Espaço disponível para texto
       const padding = 1.2;
       const availableWidth = hasVoltage ? (labelWidth / 2) - (padding * 1.5) : labelWidth - (padding * 2);
       
@@ -92,45 +96,36 @@ export const generatePDFBlob = (
       
       if (mode === LabelMode.PRODUCT) {
         doc.setFont('helvetica', 'bold');
-        
         const skuText = (label.sku || '').toUpperCase();
         const priceText = label.price || '';
         const obsText = (label.cxInner || '').toUpperCase();
 
-        const leftX = x + padding;
-        const alignOption = 'left';
+        const effectiveAlign = hasVoltage ? 'left' : textAlign;
+        const textX = effectiveAlign === 'center' ? x + (labelWidth / 2) : x + padding;
 
-        // Linha 1: SKU
         const skuSize = getAutoFontSize(doc, skuText, availableWidth, finalFontSize);
         doc.setFontSize(skuSize);
-        doc.text(skuText, leftX, y + 4.5, { align: alignOption });
+        doc.text(skuText, textX, y + 4.5, { align: effectiveAlign });
 
-        // Linha 2: Preço
         const priceSize = getAutoFontSize(doc, priceText, availableWidth, finalFontSize);
         doc.setFontSize(priceSize);
-        doc.text(priceText, leftX, y + 8.8, { align: alignOption });
+        doc.text(priceText, textX, y + 8.8, { align: effectiveAlign });
 
-        // Linha 3: OBS (Ajustado para ser bold também conforme solicitado)
         const obsSize = getAutoFontSize(doc, obsText, availableWidth, finalFontSize * 0.75);
         doc.setFontSize(obsSize);
-        doc.text(obsText, leftX, y + 13, { align: alignOption });
+        doc.text(obsText, textX, y + 13, { align: effectiveAlign });
 
-        // Lado Direito (Voltagem)
         if (hasVoltage) {
           const vBoxW = labelWidth / 2 - 1.5;
           const vBoxH = labelHeight - 2;
           const vBoxX = x + labelWidth / 2 + 0.5;
           const vBoxY = y + 1;
           
-          // Fundo leve para destacar a voltagem
           doc.setDrawColor(0);
           doc.setLineWidth(0.15);
           doc.roundedRect(vBoxX, vBoxY, vBoxW, vBoxH, 0.5, 0.5, 'S');
           
-          const voltText = label.voltage || '';
-          const voltValue = voltText.replace('V', '');
-          
-          // Número da voltagem grande
+          const voltValue = (label.voltage || '').replace('V', '');
           const voltFontSize = 18 * multiplier;
           doc.setFontSize(voltFontSize);
           doc.setFont('helvetica', 'bold');
@@ -139,20 +134,28 @@ export const generatePDFBlob = (
           const vTextY = y + (labelHeight / 2) + 1.5;
           
           doc.text(voltValue, vTextX, vTextY - 1, { align: 'center' });
-          
-          // Texto "VOLTS" pequeno embaixo
           doc.setFontSize(voltFontSize * 0.35);
           doc.text('VOLTS', vTextX, vTextY + 2.5, { align: 'center' });
         }
       } else {
-        // Modo Medida
+        // Modo Medida com suporte a Multi-line
         doc.setFont('helvetica', 'bold');
-        const mText = (label.measureText || '').toUpperCase();
-        const mSize = getAutoFontSize(doc, mText, labelWidth - 4, finalFontSize);
+        let mText = (label.measureText || '').toUpperCase();
+        
+        const wrapWidth = labelWidth - 4;
+        let lines: string[] = label.multiLine ? doc.splitTextToSize(mText, wrapWidth) : [mText];
+        
+        const mSize = getAutoFontSize(doc, lines, wrapWidth, finalFontSize);
         doc.setFontSize(mSize);
+
+        const lineHeight = mSize * ptToMm * 1.2;
+        const totalHeight = lines.length * lineHeight;
+        const startY = y + (labelHeight / 2) - (totalHeight / 2) + (lineHeight / 2) + (mSize * 0.1 * ptToMm);
         const textX = textAlign === 'center' ? x + (labelWidth / 2) : x + 1.5;
-        const centerV = y + (labelHeight / 2);
-        doc.text(mText, textX, centerV + (mSize * 0.35 * ptToMm), { align: textAlign === 'center' ? 'center' : 'left' });
+
+        lines.forEach((line, i) => {
+          doc.text(line, textX, startY + (i * lineHeight), { align: textAlign === 'center' ? 'center' : 'left' });
+        });
       }
     });
   }
